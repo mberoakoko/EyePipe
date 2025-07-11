@@ -24,7 +24,37 @@ namespace eye_pipe::pipeline {
     };
 
 
+    template <typename T, template <typename...> typename Template>
+    struct is_specialization_of: std::false_type {};
 
+    /**
+     * This is a funky AF template parameter like WTF !
+     * read it like
+     * @tparam Template
+     * @tparam Args
+     */
+    template<template<typename...> typename Template,  typename ... Args> // A template that takes a template parameter Template, which itself takes any number of type parameters
+    struct is_specialization_of<Template<Args...>, Template>: std::true_type{};
+
+    template<typename T, template<typename...> typename Template>
+    inline constexpr bool is_specialization_of_v = is_specialization_of<T, Template>::value;
+
+    template<class F, std::size_t ... Is>
+    auto index_apply_impl(F func, std::index_sequence<Is...>) {
+        return func(std::integral_constant<std::size_t, Is>{}...);
+    }
+
+    template<std::size_t N, class Func>
+    constexpr auto index_apply(Func f) {
+        return index_apply_impl(f, std::make_index_sequence<N>{});
+    }
+
+    template<class Tuple, class Func>
+    constexpr auto apply(Tuple t, Func f) {
+        using tuple_size = std::tuple_size<Tuple>;
+        auto closure = [&](auto ... Is){ return f(std::get<Is>(t)...); };
+        return index_apply<tuple_size::value>(closure);
+    }
 
     template<typename T>
     auto test_is_tuple_t(T) -> void {
@@ -41,6 +71,20 @@ namespace eye_pipe::pipeline {
         test_is_tuple_t(std::tuple<int, double>{});
         test_is_tuple_t(5);
         test_is_tuple_t("hello");
+    }
+
+    inline auto test_specialization() {
+        std::cout << "Is this a std::tuple<int> a specialization of std::tuple ?"
+                    << (is_specialization_of<std::tuple<int>, std::tuple>() ? "true": "false") << '\n';
+    }
+
+    inline auto test_apply() {
+        std::tuple<int, double, char> test_tuple {1, 1.2, 'a'};
+        apply(test_tuple, [](auto ... args) {
+            std::cout << "tuple ( ";
+            ((std::cout << args << " | "), ...);
+            std::cout << " )\n";
+        });
     }
 
 }
