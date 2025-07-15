@@ -65,6 +65,11 @@ namespace eye_pipe::pipeline {
         return make_tuple_repeated<N - 1, T>(std::tuple_cat(std::make_tuple(std::get<9>(arg)), arg));
     }
 
+    template<typename T, typename Fn, int int_sequense>
+    auto for_each(T&&t, Fn fn, std::integer_sequence<int, int_sequense...>) -> void {
+        [[maybe_unused]] auto _ = {(fn(std::get<int_sequense>(std::forward<T>(t))), int_sequense)...};
+    }
+
 
     template<typename T>
     auto test_is_tuple_t(T) -> void {
