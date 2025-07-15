@@ -6,11 +6,11 @@
 #define FUNCTIONAL_HPP
 #include "../include/eye_detail.hpp"
 
-namespace eyepipe::pipeline {
+namespace eye_pipe::pipeline {
 
     template<typename Fn>
     class func_closure {
-        func_closure fn_;
+        Fn fn_;
     public:
         explicit func_closure(Fn func): fn_(func){};
 
@@ -36,6 +36,13 @@ namespace eyepipe::pipeline {
         }
 
     };
+
+    inline auto test_func_closure() -> void {
+        auto printer_fn_closure = func_closure([](auto val) -> void {std::cout << val;});
+        printer_fn_closure("hello world\n");
+        auto identity_fn_closure = func_closure([]<typename Arg>(Arg val) -> Arg {return val;});
+        printer_fn_closure(identity_fn_closure("hello world\n"));
+    }
 }
 
 #endif //FUNCTIONAL_HPP
