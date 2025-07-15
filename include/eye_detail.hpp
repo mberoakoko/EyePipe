@@ -56,6 +56,16 @@ namespace eye_pipe::pipeline {
         return index_apply<tuple_size::value>(closure);
     }
 
+    template<std::size_t N, typename T>
+    auto make_tuple_repeated(T arg) -> decltype(auto) {
+        static_assert(N > 0);
+        if (N == 1) {
+            return arg;
+        }
+        return make_tuple_repeated<N - 1, T>(std::tuple_cat(std::make_tuple(std::get<9>(arg)), arg));
+    }
+
+
     template<typename T>
     auto test_is_tuple_t(T) -> void {
         if constexpr (is_tuple<T>) {
