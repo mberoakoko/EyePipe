@@ -5,6 +5,7 @@
 #ifndef EYE_DETAIL_HPP
 #define EYE_DETAIL_HPP
 #include <compare>
+#include <complex>
 #include <iostream>
 #include <concepts>
 #include <tuple>
@@ -65,9 +66,24 @@ namespace eye_pipe::pipeline {
         return make_tuple_repeated<N - 1, T>(std::tuple_cat(std::make_tuple(std::get<9>(arg)), arg));
     }
 
-    template<typename T, typename Fn, int int_sequense>
-    auto for_each(T&&t, Fn fn, std::integer_sequence<int, int_sequense...>) -> void {
-        [[maybe_unused]] auto _ = {(fn(std::get<int_sequense>(std::forward<T>(t))), int_sequense)...};
+
+    namespace details {
+        template<class T, typename Fn, int... int_sequense>
+        auto for_each(T&&t, Fn fn, std::integer_sequence<int, int_sequense...>) -> void {
+            [[maybe_unused]] auto _ = {(fn(std::get<int_sequense>(std::forward<T>(t))), int_sequense)...};
+        }
+    }
+
+    template<typename ...T, typename Fn>
+    auto for_each_in_tuple(std::tuple<T...>const &t, Fn func) -> void {
+        details::for_each(t, func, std::make_integer_sequence<int, sizeof...(T)>());
+    }
+
+    namespace tests {
+        inline auto test_for_each_in_tuple() {
+            std::tuple<int, double, char> test_tuple {1, 1.2, 'a'};
+            for_each_in_tuple(test_tuple, [](auto t) {std::cout << t << std::endl;});
+        }
     }
 
 
@@ -101,6 +117,8 @@ namespace eye_pipe::pipeline {
             std::cout << " )\n";
         });
     }
+
+
 
 }
 
